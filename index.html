@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BeadyEyes Gym Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BeadyEyes">
+<meta name="theme-color" content="#B8860B">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+:root{--bg:#1a1a1a;--card:#242424;--card2:#2e2e2e;--accent:#B8860B;--gold:#B8860B;--blue:#8C6D0F;--text:#F5ECD7;--muted:#9A8060;--border:#3a3a3a;--green:#c8a84c;--radius:6px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.header{background:#2C2C2C;padding:20px 16px 16px;border-bottom:2px solid #B8860B;position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.logo-main{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--accent);letter-spacing:1px;line-height:1}
+.logo-sub{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.week-badge{background:var(--accent);color:white;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;padding:4px 12px;border-radius:20px;letter-spacing:1px}
+.nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{flex-shrink:0;background:var(--card);border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.5px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;text-transform:uppercase}
+.nav-btn.active{background:var(--accent);border-color:var(--accent);color:white}
+.content{padding:16px;max-width:500px;margin:0 auto}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.session-label{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:16px}
+.session-tag{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:4px;color:white}
+.tag-push{background:#B8860B}.tag-pull{background:#2C2C2C}.tag-quad{background:#6B5A1E}.tag-hinge{background:#B8860B;color:#fff}
+.session-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--text);letter-spacing:0.5px}
+.session-focus{font-size:13px;color:var(--muted)}
+.warmup-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--radius);padding:11px 14px;margin-bottom:14px;font-size:13px;color:var(--muted);font-style:italic}
+.warmup-card strong{color:var(--gold);font-style:normal}
+.rest-chip{display:inline-flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);margin-bottom:14px}
+.rest-chip span{color:var(--accent);font-weight:700}
+.pair-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;margin-top:16px;display:flex;align-items:center;gap:8px}
+.pair-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.exercise-pair{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.exercise-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden}
+.exercise-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border);transition:background 0.2s}
+.exercise-card.done::before{background:var(--green)}
+.exercise-card.done{border-color:rgba(200,168,76,0.3);background:rgba(200,168,76,0.05)}
+.exercise-info{flex:1;padding-left:4px}
+.exercise-name{font-weight:600;font-size:15px;color:var(--text);line-height:1.3;margin-bottom:3px}
+.exercise-card.done .exercise-name{color:var(--green)}
+.exercise-meta{font-size:12px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+.check-circle{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;transition:all 0.2s;margin-left:10px;color:transparent}
+.exercise-card.done .check-circle{background:var(--green);border-color:var(--green);color:white}
+.vs-divider{text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:11px;letter-spacing:3px;color:var(--accent)}
+.burnout-card{background:linear-gradient(135deg,rgba(184,134,11,0.15),rgba(184,134,11,0.05));border:1px solid rgba(184,134,11,0.4);border-radius:var(--radius);padding:12px 14px;margin-top:16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.15s}
+.burnout-card.done{background:linear-gradient(135deg,rgba(76,175,120,0.15),rgba(200,168,76,0.05));border-color:rgba(76,175,120,0.4)}
+.burnout-icon{font-size:20px}
+.burnout-text{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+.burnout-label{font-size:11px;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.burnout-card.done .burnout-label{color:var(--green)}
+.progress-wrap{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.progress-title{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
+.progress-pct{color:var(--accent);font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:15px}
+.progress-bar-bg{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width 0.4s ease}
+.complete-banner{display:none;background:linear-gradient(135deg,rgba(200,168,76,0.2),rgba(200,168,76,0.05));border:1px solid var(--green);border-radius:var(--radius);padding:14px;text-align:center;margin-top:16px}
+.complete-banner.show{display:block}
+.complete-banner h3{color:var(--green);font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;margin-bottom:4px}
+.complete-banner p{font-size:13px;color:var(--muted)}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;letter-spacing:1px;text-transform:uppercase;color:var(--text);margin-bottom:12px;margin-top:16px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.section-title span{color:var(--accent)}
+.tracker-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.tracker-session{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s}
+.tracker-session.logged{border-color:rgba(200,168,76,0.5);background:rgba(200,168,76,0.06)}
+.tracker-session-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:17px;letter-spacing:0.5px;margin-bottom:4px}
+.tracker-session-focus{font-size:11px;color:var(--muted);margin-bottom:10px}
+.tracker-date{font-size:11px;color:var(--green);font-weight:600;min-height:16px}
+.log-btn{background:var(--accent);color:white;border:none;border-radius:6px;padding:6px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:6px;transition:all 0.15s}
+.log-btn.logged{background:var(--green)}
+.log-btn.clear-btn{background:var(--border);color:var(--muted);margin-left:4px;font-size:11px;padding:6px 8px}
+.week-selector{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.week-selector::-webkit-scrollbar{display:none}
+.week-btn{flex-shrink:0;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;text-transform:uppercase}
+.week-btn.active{background:var(--accent);border-color:var(--accent);color:white}
+.notes-section{margin-bottom:20px}
+.notes-section h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.note-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
+.note-exercise{flex:1;font-size:14px;font-weight:500;color:var(--text)}
+.note-input{width:80px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;text-align:center;padding:6px 4px;font-family:'Barlow',sans-serif;outline:none}
+.note-input:focus{border-color:var(--accent)}
+.note-unit{font-size:12px;color:var(--muted);width:20px}
+.tip-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.tip-card h4{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--accent);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px}
+.tip-card p{font-size:14px;color:var(--muted);line-height:1.5}
+.tip-card p strong{color:var(--text)}
+/* FORM GUIDE */
+.form-group-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 0 8px;display:flex;align-items:center;gap:8px}
+.form-group-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.form-group-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;color:white;letter-spacing:1px;font-family:'Barlow Condensed',sans-serif}
+.acc-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.acc-item.open{border-color:var(--accent)}
+.acc-header{display:flex;align-items:center;justify-content:space-between;padding:14px;cursor:pointer;user-select:none}
+.acc-name{font-weight:600;font-size:15px;color:var(--text);flex:1}
+.acc-item.open .acc-name{color:var(--accent)}
+.acc-muscles{font-size:11px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-top:2px}
+.acc-chevron{font-size:12px;color:var(--muted);transition:transform 0.25s;flex-shrink:0;margin-left:10px}
+.acc-item.open .acc-chevron{transform:rotate(180deg);color:var(--accent)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height 0.35s ease}
+.acc-inner{padding:0 14px 14px;border-top:1px solid var(--border)}
+.form-sec{margin-top:12px}
+.form-sec-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;padding:3px 0}
+.lbl-setup{color:var(--blue)}.lbl-move{color:var(--green)}.lbl-feel{color:var(--gold)}.lbl-avoid{color:var(--accent)}
+.form-cue{font-size:13px;color:var(--muted);line-height:1.5;padding:4px 0 4px 12px;border-left:2px solid var(--border);margin-bottom:4px}
+.form-cue b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="logo-main">BEADYEYES GYM</div>
+      <div class="logo-sub">Home Training Tracker</div>
+    </div>
+    <div class="week-badge" id="weekBadge">WEEK 1</div>
+  </div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('upperA',this)">Upper A</button>
+    <button class="nav-btn" onclick="showTab('upperB',this)">Upper B</button>
+    <button class="nav-btn" onclick="showTab('lowerA',this)">Lower A</button>
+    <button class="nav-btn" onclick="showTab('lowerB',this)">Lower B</button>
+    <button class="nav-btn" onclick="showTab('tracker',this)">Tracker</button>
+    <button class="nav-btn" onclick="showTab('log',this)">Log</button>
+    <button class="nav-btn" onclick="showTab('tips',this)">Tips</button>
+    <button class="nav-btn" onclick="showTab('form',this)">Form</button>
+  </nav>
+</div>
+
+<div class="content">
+
+<!-- ═══ UPPER A ═══ -->
+<div id="tab-upperA" class="tab-panel active">
+  <div class="session-label">
+    <span class="session-tag tag-push">Push</span>
+    <div><div class="session-title">UPPER A</div><div class="session-focus">Chest · Shoulders · Triceps</div></div>
+  </div>
+  <div class="warmup-card"><strong>Warm-up:</strong> 2 min light movement + 1 set bench at 50% weight</div>
+  <div class="rest-chip">⏱ <span>30–45s</span> within pair &nbsp;·&nbsp; <span>75–90s</span> between pairs</div>
+  <div class="pair-label">Pair 1</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'ua1')"><div class="exercise-info"><div class="exercise-name">Flat Bench Press (barbell)</div><div class="exercise-meta">3 sets · 8–12 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'ua2')"><div class="exercise-info"><div class="exercise-name">Incline Dumbbell Press</div><div class="exercise-meta">3 sets · 8–12 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="pair-label">Pair 2</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'ua3')"><div class="exercise-info"><div class="exercise-name">Dumbbell Shoulder Press</div><div class="exercise-meta">3 sets · 8–12 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'ua4')"><div class="exercise-info"><div class="exercise-name">Lateral Raises</div><div class="exercise-meta">3 sets · 10–15 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="pair-label">Pair 3</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'ua5')"><div class="exercise-info"><div class="exercise-name">Tricep Cable Pushdown</div><div class="exercise-meta">3 sets · 10–12 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'ua6')"><div class="exercise-info"><div class="exercise-name">Dumbbell Skull Crushers</div><div class="exercise-meta">3 sets · 10–12 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="burnout-card" onclick="toggleBurn(this,'ua-b')"><div class="burnout-icon">🔥</div><div class="burnout-text"><div class="burnout-label">Burnout</div>Press-ups to failure — 1 set</div><div class="check-circle">✓</div></div>
+  <div class="progress-wrap"><div class="progress-title"><span>Session Progress</span><span class="progress-pct" id="ua-pct">0%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" id="ua-bar" style="width:0%"></div></div></div>
+  <div class="complete-banner" id="ua-done"><h3>💪 SESSION DONE!</h3><p>Chest, shoulders and tris fired up. Rest and recover.</p></div>
+</div>
+
+<!-- ═══ UPPER B ═══ -->
+<div id="tab-upperB" class="tab-panel">
+  <div class="session-label">
+    <span class="session-tag tag-pull">Pull</span>
+    <div><div class="session-title">UPPER B</div><div class="session-focus">Back · Biceps · Rear Delts</div></div>
+  </div>
+  <div class="warmup-card"><strong>Warm-up:</strong> 2 min light movement + 1 set lat pulldown at 50% weight</div>
+  <div class="rest-chip">⏱ <span>30–45s</span> within pair &nbsp;·&nbsp; <span>75–90s</span> between pairs</div>
+  <div class="pair-label">Pair 1</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'ub1')"><div class="exercise-info"><div class="exercise-name">Cable Lat Pulldown</div><div class="exercise-meta">3 sets · 8–12 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'ub2')"><div class="exercise-info"><div class="exercise-name">Dumbbell Bent-Over Row</div><div class="exercise-meta">3 sets · 8–12 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="pair-label">Pair 2</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'ub3')"><div class="exercise-info"><div class="exercise-name">Incline DB Row (low angle)</div><div class="exercise-meta">3 sets · 10–12 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'ub4')"><div class="exercise-info"><div class="exercise-name">Rear Delt Dumbbell Fly</div><div class="exercise-meta">3 sets · 12–15 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="pair-label">Pair 3</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'ub5')"><div class="exercise-info"><div class="exercise-name">Dumbbell Bicep Curl</div><div class="exercise-meta">3 sets · 8–12 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'ub6')"><div class="exercise-info"><div class="exercise-name">Hammer Curl</div><div class="exercise-meta">3 sets · 10–12 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="burnout-card" onclick="toggleBurn(this,'ub-b')"><div class="burnout-icon">🔥</div><div class="burnout-text"><div class="burnout-label">Burnout</div>Cable pulldown slow negatives — 5 reps, 5 sec lower</div><div class="check-circle">✓</div></div>
+  <div class="progress-wrap"><div class="progress-title"><span>Session Progress</span><span class="progress-pct" id="ub-pct">0%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" id="ub-bar" style="width:0%"></div></div></div>
+  <div class="complete-banner" id="ub-done"><h3>💪 SESSION DONE!</h3><p>Back, biceps and rear delts smashed. Great pull session.</p></div>
+</div>
+
+<!-- ═══ LOWER A ═══ -->
+<div id="tab-lowerA" class="tab-panel">
+  <div class="session-label">
+    <span class="session-tag tag-quad">Quad</span>
+    <div><div class="session-title">LOWER A</div><div class="session-focus">Quads · Calves</div></div>
+  </div>
+  <div class="warmup-card"><strong>Warm-up:</strong> 2 min bodyweight squats + leg swings</div>
+  <div class="rest-chip">⏱ <span>30–45s</span> within pair &nbsp;·&nbsp; <span>75–90s</span> between pairs</div>
+  <div class="pair-label">Pair 1</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'la1')"><div class="exercise-info"><div class="exercise-name">Barbell Squat</div><div class="exercise-meta">3 sets · 8–12 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'la2')"><div class="exercise-info"><div class="exercise-name">Dumbbell Walking Lunges</div><div class="exercise-meta">3 sets · 10 each leg</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="pair-label">Pair 2</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'la3')"><div class="exercise-info"><div class="exercise-name">Dumbbell Step-Ups (use bench)</div><div class="exercise-meta">3 sets · 10 each leg</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'la4')"><div class="exercise-info"><div class="exercise-name">Goblet Squat Pulse</div><div class="exercise-meta">3 sets · 12 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="pair-label">Pair 3</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'la5')"><div class="exercise-info"><div class="exercise-name">Calf Raises (dumbbell loaded)</div><div class="exercise-meta">3 sets · 15–20 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'la6')"><div class="exercise-info"><div class="exercise-name">Single Leg Calf Raise</div><div class="exercise-meta">3 sets · 12 each leg</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="burnout-card" onclick="toggleBurn(this,'la-b')"><div class="burnout-icon">🔥</div><div class="burnout-text"><div class="burnout-label">Burnout</div>Wall sit — 45 to 60 seconds</div><div class="check-circle">✓</div></div>
+  <div class="progress-wrap"><div class="progress-title"><span>Session Progress</span><span class="progress-pct" id="la-pct">0%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" id="la-bar" style="width:0%"></div></div></div>
+  <div class="complete-banner" id="la-done"><h3>💪 SESSION DONE!</h3><p>Quads and calves destroyed. Time to refuel.</p></div>
+</div>
+
+<!-- ═══ LOWER B ═══ -->
+<div id="tab-lowerB" class="tab-panel">
+  <div class="session-label">
+    <span class="session-tag tag-hinge">Hinge</span>
+    <div><div class="session-title">LOWER B</div><div class="session-focus">Hamstrings · Glutes · Core</div></div>
+  </div>
+  <div class="warmup-card"><strong>Warm-up:</strong> 2 min hip circles + bodyweight glute bridges</div>
+  <div class="rest-chip">⏱ <span>30–45s</span> within pair &nbsp;·&nbsp; <span>75–90s</span> between pairs</div>
+  <div class="pair-label">Pair 1</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'lb1')"><div class="exercise-info"><div class="exercise-name">Deadlift (barbell)</div><div class="exercise-meta">3 sets · 5–8 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'lb2')"><div class="exercise-info"><div class="exercise-name">Romanian Deadlift (dumbbells)</div><div class="exercise-meta">3 sets · 10–12 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="pair-label">Pair 2</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'lb3')"><div class="exercise-info"><div class="exercise-name">Dumbbell Sumo Squat</div><div class="exercise-meta">3 sets · 10–12 reps</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'lb4')"><div class="exercise-info"><div class="exercise-name">Hip Thrust (flat bench)</div><div class="exercise-meta">3 sets · 12–15 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="pair-label">Pair 3</div>
+  <div class="exercise-pair">
+    <div class="exercise-card" onclick="toggleEx(this,'lb5')"><div class="exercise-info"><div class="exercise-name">Single Leg Romanian Deadlift</div><div class="exercise-meta">3 sets · 8 each leg</div></div><div class="check-circle">✓</div></div>
+    <div class="vs-divider">SUPERSET</div>
+    <div class="exercise-card" onclick="toggleEx(this,'lb6')"><div class="exercise-info"><div class="exercise-name">Glute Bridge Hold (3s squeeze)</div><div class="exercise-meta">3 sets · 10 reps</div></div><div class="check-circle">✓</div></div>
+  </div>
+  <div class="burnout-card" onclick="toggleBurn(this,'lb-b')"><div class="burnout-icon">🔥</div><div class="burnout-text"><div class="burnout-label">Burnout</div>Plank hold — 30 seconds</div><div class="check-circle">✓</div></div>
+  <div class="progress-wrap"><div class="progress-title"><span>Session Progress</span><span class="progress-pct" id="lb-pct">0%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" id="lb-bar" style="width:0%"></div></div></div>
+  <div class="complete-banner" id="lb-done"><h3>💪 SESSION DONE!</h3><p>Posterior chain done. That is a full week of work.</p></div>
+</div>
+
+<!-- ═══ TRACKER ═══ -->
+<div id="tab-tracker" class="tab-panel">
+  <div class="section-title">Session <span>Tracker</span></div>
+  <div class="week-selector" id="weekSel"></div>
+  <div class="tracker-grid" id="trackerGrid"></div>
+  <div class="tip-card"><h4>3-Session Weeks</h4><p>Run <strong>Upper A then Lower A then Upper B</strong>. Start next week with <strong>Lower B then Upper A then Lower A</strong>. You will cycle everything over a fortnight.</p></div>
+</div>
+
+<!-- ═══ LOG ═══ -->
+<div id="tab-log" class="tab-panel">
+  <div class="section-title">Weight <span>Log</span></div>
+  <div class="notes-section"><h3>Upper A — Push</h3><div id="log-ua"></div></div>
+  <div class="notes-section"><h3>Upper B — Pull</h3><div id="log-ub"></div></div>
+  <div class="notes-section"><h3>Lower A — Quad</h3><div id="log-la"></div></div>
+  <div class="notes-section"><h3>Lower B — Hinge</h3><div id="log-lb"></div></div>
+</div>
+
+<!-- ═══ TIPS ═══ -->
+<div id="tab-tips" class="tab-panel">
+  <div class="section-title">Training <span>Tips</span></div>
+  <div class="tip-card"><h4>Progressive Overload</h4><p>Each week, do <strong>one thing</strong> — add 1 rep, or increase weight. Do not chase both. Small consistent gains add up dramatically over months.</p></div>
+  <div class="tip-card"><h4>Deload Week (Every 4 Weeks)</h4><p>Drop weight by <strong>10%</strong> and slow every rep to 3 seconds on the lowering phase. This prevents plateau and lets joints recover. You often come back stronger.</p></div>
+  <div class="tip-card"><h4>Superset Tempo</h4><p><strong>Within pairs:</strong> 30-45 sec rest. <strong>Between pairs:</strong> 75-90 sec rest. Keep a phone timer running. This is what keeps sessions under 45 minutes.</p></div>
+  <div class="tip-card"><h4>Mind-Muscle Connection</h4><p>On isolation exercises — laterals, curls, flys — <strong>feel the muscle working</strong>. Lighter weight with real contraction beats heavy sloppy reps every time.</p></div>
+  <div class="tip-card"><h4>Deadlift — King of Exercises</h4><p>Lower reps are fine here (5-8). Focus on <strong>hip hinge not back bend</strong>. Push the floor away, do not pull the bar up. Braced core throughout every rep.</p></div>
+  <div class="tip-card"><h4>Nutrition Timing</h4><p>Training at 6am? Have <strong>20-30g protein</strong> within 30 minutes of finishing. Even a shake counts. Skipping post-workout nutrition limits muscle protein synthesis significantly.</p></div>
+  <div class="tip-card"><h4>The Honest Rule</h4><p><strong>3 solid sessions beats 4 rushed ones.</strong> If short on time, cut the burnout, not the superset pairs. Protect the main work.</p></div>
+</div>
+
+<!-- ═══ FORM GUIDE ═══ -->
+<div id="tab-form" class="tab-panel">
+  <div class="section-title">Form <span>Guide</span></div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Tap any exercise to expand full form cues.</p>
+  <div id="formContent"></div>
+</div>
+
+</div><!-- .content -->
+
+<script>
+var ST = {};
+try { ST = JSON.parse(localStorage.getItem('gp2') || '{}'); } catch(e){}
+if (!ST.done) ST.done = {};
+if (!ST.log) ST.log = {};
+if (!ST.tracker) ST.tracker = {};
+if (!ST.week) ST.week = 1;
+
+function save() { try { localStorage.setItem('gp2', JSON.stringify(ST)); } catch(e){} }
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'tracker') renderTracker();
+  if (id === 'log') renderLog();
+  if (id === 'form') renderForm();
+}
+
+// ── EXERCISE TOGGLE ───────────────────────────────────────────────────────
+function toggleEx(card, id) {
+  ST.done[id] = !ST.done[id];
+  save();
+  card.classList.toggle('done', ST.done[id]);
+  updateProgress(card.closest('.tab-panel'));
+}
+
+function toggleBurn(card, id) {
+  ST.done[id] = !ST.done[id];
+  save();
+  card.classList.toggle('done', ST.done[id]);
+  updateProgress(card.closest('.tab-panel'));
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────────────────
+var SESSION_IDS = {
+  'tab-upperA': ['ua1','ua2','ua3','ua4','ua5','ua6','ua-b'],
+  'tab-upperB': ['ub1','ub2','ub3','ub4','ub5','ub6','ub-b'],
+  'tab-lowerA': ['la1','la2','la3','la4','la5','la6','la-b'],
+  'tab-lowerB': ['lb1','lb2','lb3','lb4','lb5','lb6','lb-b']
+};
+var PFX = { 'tab-upperA':'ua','tab-upperB':'ub','tab-lowerA':'la','tab-lowerB':'lb' };
+
+function updateProgress(panel) {
+  if (!panel || !panel.id || !SESSION_IDS[panel.id]) return;
+  var ids = SESSION_IDS[panel.id];
+  var done = ids.filter(function(id){ return ST.done[id]; }).length;
+  var pct = Math.round(done / ids.length * 100);
+  var pfx = PFX[panel.id];
+  var pctEl = document.getElementById(pfx + '-pct');
+  var barEl = document.getElementById(pfx + '-bar');
+  var doneEl = document.getElementById(pfx + '-done');
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (barEl) barEl.style.width = pct + '%';
+  if (doneEl) doneEl.classList.toggle('show', pct === 100);
+}
+
+function initCards() {
+  document.querySelectorAll('.exercise-card').forEach(function(card) {
+    var fn = card.getAttribute('onclick');
+    if (!fn) return;
+    var m = fn.match(/'([^']+)'\)/);
+    if (m && ST.done[m[1]]) card.classList.add('done');
+  });
+  document.querySelectorAll('.burnout-card').forEach(function(card) {
+    var fn = card.getAttribute('onclick');
+    if (!fn) return;
+    var m = fn.match(/'([^']+)'\)/);
+    if (m && ST.done[m[1]]) card.classList.add('done');
+  });
+  Object.keys(PFX).forEach(function(panelId) {
+    updateProgress(document.getElementById(panelId));
+  });
+}
+
+// ── TRACKER ───────────────────────────────────────────────────────────────
+var SESSIONS = [
+  {key:'upperA', name:'UPPER A', focus:'Push — Chest, Shoulders, Tris', color:'#B8860B'},
+  {key:'lowerA', name:'LOWER A', focus:'Quad — Quads and Calves', color:'#c8a84c'},
+  {key:'upperB', name:'UPPER B', focus:'Pull — Back and Biceps', color:'#8C6D0F'},
+  {key:'lowerB', name:'LOWER B', focus:'Hinge — Hams and Glutes', color:'#B8860B'}
+];
+
+function renderTracker() {
+  var sel = document.getElementById('weekSel');
+  sel.innerHTML = '';
+  for (var w = 1; w <= 8; w++) {
+    (function(wk){
+      var btn = document.createElement('button');
+      btn.className = 'week-btn' + (ST.week === wk ? ' active' : '');
+      btn.textContent = 'Week ' + wk;
+      btn.onclick = function() { ST.week = wk; save(); renderTracker(); document.getElementById('weekBadge').textContent = 'WEEK ' + wk; };
+      sel.appendChild(btn);
+    })(w);
+  }
+  var grid = document.getElementById('trackerGrid');
+  grid.innerHTML = '';
+  SESSIONS.forEach(function(s) {
+    var key = 'w' + ST.week + '_' + s.key;
+    var logged = ST.tracker[key] || '';
+    var div = document.createElement('div');
+    div.className = 'tracker-session' + (logged ? ' logged' : '');
+    div.innerHTML =
+      '<div class="tracker-session-name" style="color:' + s.color + '">' + s.name + '</div>' +
+      '<div class="tracker-session-focus">' + s.focus + '</div>' +
+      '<div class="tracker-date">' + (logged ? '✓ ' + logged : '') + '</div>' +
+      '<button class="log-btn' + (logged ? ' logged' : '') + '" onclick="logSess(\'' + s.key + '\')">' + (logged ? 'Done ✓' : 'Log Session') + '</button>' +
+      (logged ? '<button class="log-btn clear-btn" onclick="clearSess(\'' + s.key + '\')">✕</button>' : '');
+    grid.appendChild(div);
+  });
+}
+
+function logSess(sKey) {
+  var today = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+  ST.tracker['w' + ST.week + '_' + sKey] = today;
+  save(); renderTracker();
+}
+function clearSess(sKey) {
+  delete ST.tracker['w' + ST.week + '_' + sKey];
+  save(); renderTracker();
+}
+
+// ── LOG ───────────────────────────────────────────────────────────────────
+var LOG_DATA = {
+  'log-ua': ['Flat Bench Press','Incline DB Press','DB Shoulder Press','Lateral Raises','Tricep Pushdown','Skull Crushers'],
+  'log-ub': ['Cable Lat Pulldown','Bent-Over Row','Incline DB Row','Rear Delt Fly','Bicep Curl','Hammer Curl'],
+  'log-la': ['Barbell Squat','DB Walking Lunges','DB Step-Ups','Goblet Squat Pulse','Calf Raises','Single Leg Calf Raise'],
+  'log-lb': ['Deadlift','Romanian Deadlift','Sumo Squat','Hip Thrust','SL Romanian DL','Glute Bridge Hold']
+};
+
+function renderLog() {
+  Object.keys(LOG_DATA).forEach(function(cid) {
+    var c = document.getElementById(cid);
+    if (!c) return;
+    c.innerHTML = '';
+    LOG_DATA[cid].forEach(function(ex) {
+      var key = 'lg_' + ex.replace(/\s/g,'_') + '_w' + ST.week;
+      var val = ST.log[key] || '';
+      var row = document.createElement('div');
+      row.className = 'note-row';
+      row.innerHTML = '<div class="note-exercise">' + ex + '</div>' +
+        '<input class="note-input" type="number" placeholder="—" min="0" step="0.5" value="' + val + '" oninput="saveLog(this,\'' + key + '\')">' +
+        '<span class="note-unit">kg</span>';
+      c.appendChild(row);
+    });
+  });
+}
+
+function saveLog(input, key) { ST.log[key] = input.value; save(); }
+
+// ── FORM GUIDE ────────────────────────────────────────────────────────────
+var FORM_DATA = [
+  { group:'Upper A — Push', tag:'PUSH', tagColor:'#e94560', exercises:[
+    { name:'Flat Bench Press', muscles:'Chest · Anterior Deltoid · Triceps',
+      setup:['Lie flat, eyes under the bar. Feet flat on the floor.','Grip just wider than shoulder-width, wrists straight over elbows.','Retract and depress your shoulder blades — create a slight arch in your lower back.'],
+      move:['Lower the bar to mid-chest in a controlled 2-count.','Pause briefly — no bouncing off the chest.','Drive the bar back up explosively along the same path.'],
+      feel:['Tension across the entire chest on the way down.','A strong chest squeeze at the top — avoid fully locking out the elbows.'],
+      avoid:['Bar drifting toward the throat or the stomach — keep it at nipple line.','Shoulders rolling forward at the top. Keep them pinned back throughout.'] },
+    { name:'Incline Dumbbell Press', muscles:'Upper Chest · Front Deltoid · Triceps',
+      setup:['Set bench to 30–45 degrees. Higher angle shifts load to shoulders.','Dumbbells at shoulder height, palms facing forward.','Same shoulder blade retraction as flat bench.'],
+      move:['Press up and very slightly inward — dumbbells nearly touch at the top.','Lower in a controlled arc back to shoulder height.','Keep elbows at 60–70 degrees from your torso — not flared to 90.'],
+      feel:['Upper chest, just below the collarbone, doing the main work.','Greater stretch at the bottom than flat bench — use it.'],
+      avoid:['Flaring elbows wide — this stresses the shoulder joint.','Letting the dumbbells drift too far apart at the bottom.'] },
+    { name:'Dumbbell Shoulder Press', muscles:'Anterior and Medial Deltoid · Triceps · Upper Traps',
+      setup:['Seated or standing. Seated with back support avoids excess lower back load.','Dumbbells at ear height, elbows at 90 degrees, palms facing forward.'],
+      move:['Press straight up — dumbbells can angle slightly inward at the top.','Lower slowly back to start — 2 full seconds down.'],
+      feel:['Front and side of the shoulder. If you feel it in your neck or traps, elbows may be too high.'],
+      avoid:['Arching your lower back to force the weight up — brace your core hard.','Locking out aggressively at the top — keep a soft elbow.'] },
+    { name:'Lateral Raises', muscles:'Medial (Side) Deltoid',
+      setup:['Stand or sit. Slight bend in the elbow — keep it fixed throughout.','Brace core, slight 10–15 degree forward lean helps target the medial delt.'],
+      move:['Raise arms out to the side to shoulder height. No higher, no momentum.','Lead with the elbows, not the hands.','At the top, tilt the dumbbell slightly forward — like pouring a jug.','Lower slowly — 3 full seconds down. The lowering phase drives the gains here.'],
+      feel:['Burning ache in the side of the shoulder. This should not feel easy.'],
+      avoid:['Swinging or using your legs to get the weight up.','Shrugging — keep your shoulders away from your ears throughout.','Going too heavy. This works best lighter and controlled.'] },
+    { name:'Tricep Cable Pushdown', muscles:'Triceps (all 3 heads)',
+      setup:['Rope or straight bar at a high pulley position.','Stand close to the cable, elbows pinned to your sides — they must not move.','A slight forward lean from the hips is fine.'],
+      move:['Push the attachment down until arms are fully extended.','At full extension, rotate hands outward if using a rope, and squeeze hard.','Return slowly — control the cable back up.'],
+      feel:['The squeeze and burn in the back of the upper arm at full extension.'],
+      avoid:['Elbows flaring out or drifting forward as weight increases.','Using your back or bodyweight to push down — that is your lats, not your triceps.'] },
+    { name:'Dumbbell Skull Crushers', muscles:'Triceps (long head emphasis)',
+      setup:['Lie flat on the bench. Hold dumbbells above chest, arms vertical, palms facing each other.'],
+      move:['Keeping upper arms still and vertical, bend elbows to lower dumbbells toward your temples.','Stop when elbows reach roughly 90 degrees.','Extend back to start — squeeze the tricep hard at the top.'],
+      feel:['Deep stretch in the long head of the tricep at the bottom of each rep.'],
+      avoid:['Upper arms drifting forward as you lower — this turns it into a press.','Going too heavy and losing control near your head. Use a manageable weight.'] }
+  ]},
+  { group:'Upper B — Pull', tag:'PULL', tagColor:'#4a90d9', exercises:[
+    { name:'Cable Lat Pulldown', muscles:'Latissimus Dorsi · Biceps · Rear Deltoid',
+      setup:['Wide overhand grip — roughly 1.5x shoulder width.','Sit with thighs under the pad. Slight backward lean of 15–20 degrees is correct.'],
+      move:['Initiate by depressing your shoulder blades first — before your arms bend.','Pull the bar to upper chest, driving elbows down and back.','Control the return — let arms fully extend to stretch the lats at the top.'],
+      feel:['Lats contracting when you squeeze at the bottom. If you feel it mostly in your biceps, focus on driving the elbows down rather than pulling with your hands.'],
+      avoid:['Pulling to behind the neck — unnecessary stress on the cervical spine.','Using momentum to swing the bar down.'] },
+    { name:'Dumbbell Bent-Over Row', muscles:'Mid Back · Lats · Rear Delt · Biceps',
+      setup:['Hinge at hips until torso is roughly parallel to the floor. Soft bend in knees.','Brace your core hard — spine must stay neutral, not rounded.','Let dumbbells hang straight down from your shoulders.'],
+      move:['Row both dumbbells up to the lower ribcage, driving elbows back and slightly out.','Squeeze hard at the top — hold for 1 second.','Lower fully to the hanging position — full stretch each rep.'],
+      feel:['Mid-back contraction at the top. Rhomboids and mid-traps doing the squeezing work.'],
+      avoid:['Rounding the lower back. If your back rounds, reduce the weight.','Bicep-curling the weight up — initiate with the elbow, not the hand.'] },
+    { name:'Incline DB Row (low angle)', muscles:'Mid and Upper Back · Rear Delt · Traps',
+      setup:['Set bench to a low incline of 20–30 degrees. Lie chest-down on the pad.','Feet on the floor for stability. Let arms hang naturally.','The supported position eliminates lower back fatigue — you can truly isolate the back.'],
+      move:['Row dumbbells up to the sides of your chest.','Squeeze shoulder blades together hard at the top.','Lower with full control back to the hanging position.'],
+      feel:['One of the best exercises for feeling the mid back work in clear isolation.'],
+      avoid:['Shrugging your traps as you row — keep shoulders down and packed.','Letting your head droop into the bench — maintain a neutral neck position.'] },
+    { name:'Rear Delt Dumbbell Fly', muscles:'Rear Deltoid · Rhomboids · Mid Traps',
+      setup:['Hinge forward as per bent-over row, or sit at the edge of a bench leaning over your thighs.','Use light weight — this is a strict isolation move.','Soft, fixed bend in the elbows throughout.'],
+      move:['Raise both arms out to the sides in an arc until level with your back.','Squeeze the rear delts at the top — imagine pinching a pencil between your shoulder blades.','Lower with a controlled 3-second count.'],
+      feel:['The rear delt — the back of the shoulder. If you feel it mainly in your traps, your torso may be too upright.'],
+      avoid:['Going heavy and turning it into a row. This is strictly a fly movement.','Any jerking or momentum — slow and controlled is the only way.'] },
+    { name:'Dumbbell Bicep Curl', muscles:'Biceps Brachii · Brachialis',
+      setup:['Stand tall, dumbbells at sides, palms facing forward (supinated grip).','Elbows pinned to your sides — they must not move forward as you curl.'],
+      move:['Curl both dumbbells to shoulder height.','Pause and squeeze at the top — rotate palms slightly outward for maximum peak contraction.','Lower slowly — 3 full seconds down.'],
+      feel:['Peak of the bicep contracting hard at the top. The slow negative is where muscle growth is triggered.'],
+      avoid:['Swinging your back to help lift the weight. If that happens, reduce the load.','Elbows drifting forward — this shifts tension away from the bicep and onto the front delt.'] },
+    { name:'Hammer Curl', muscles:'Brachialis · Brachioradialis · Biceps',
+      setup:['Same as bicep curl but palms face each other (neutral grip) for the entire movement.','Do not rotate the wrist at any point.'],
+      move:['Curl up keeping the neutral grip — thumbs pointing to the ceiling at the top.','Lower with full control. Can be done alternating or simultaneously.'],
+      feel:['More outer bicep and forearm engagement compared to regular curls.'],
+      avoid:['Rotating into a supinated grip at the top — that converts it to a standard curl. Keep palms neutral throughout.'] }
+  ]},
+  { group:'Lower A — Quad', tag:'QUAD', tagColor:'#4caf78', exercises:[
+    { name:'Barbell Squat', muscles:'Quadriceps · Glutes · Hamstrings · Core',
+      setup:['Bar rests on upper traps (high bar) or rear delts (low bar). High bar is more quad-dominant.','Feet shoulder-width apart, toes turned out 15–30 degrees.','Brace your core hard before you unrack.'],
+      move:['Initiate by pushing knees out and sitting hips back and down simultaneously.','Descend until thighs are at least parallel to the floor — deeper if mobility allows.','Drive up through mid-foot. Think push the floor apart, not stand up.'],
+      feel:['Quad burn on the way down and up. Glutes firing hard out of the bottom position.'],
+      avoid:['Knees caving inward — actively push them out throughout the entire movement.','Forward torso lean that shifts the bar onto your neck. Keep the chest up.','Rising onto your toes — the whole foot stays in contact with the floor.'] },
+    { name:'Dumbbell Walking Lunges', muscles:'Quadriceps · Glutes · Hamstrings · Balance',
+      setup:['Stand upright, dumbbells at sides.','You need around 5–6 metres of clear floor space.'],
+      move:['Step forward and lower until your rear knee nearly touches the floor.','Your front shin should be roughly vertical — knee tracking over toes.','Drive up through the front heel to bring the rear foot forward into the next step.'],
+      feel:['Front quad and glute doing the driving work. Rear hip flexor getting a stretch at the bottom.'],
+      avoid:['Short strides that keep the torso too upright and reduce range of motion — step long.','Looking down at the floor. Keep chin up and eyes forward for balance.'] },
+    { name:'Dumbbell Step-Ups', muscles:'Quadriceps · Glutes · Single-Leg Stability',
+      setup:['Use the flat bench. Height should be roughly knee height.','Stand in front with dumbbells at sides.'],
+      move:['Place one foot firmly on the bench. Drive through that heel to stand up — do not push off the back foot.','Bring the rear foot up to stand fully on the bench.','Step back down with control. Same leg leads all reps before switching.'],
+      feel:['The working quad and glute on the raised leg doing all the effort. If the back leg is helping, make it completely passive.'],
+      avoid:['Bouncing off the back foot to assist — this is a single-leg movement, earn every rep.','Foot placement so far back that the heel hangs off the bench edge.'] },
+    { name:'Goblet Squat Pulse', muscles:'Quadriceps · Core · Hip Flexors',
+      setup:['Hold one dumbbell vertically at chest height with both hands cupped around one end.','Feet slightly wider than shoulder-width, toes pointed out.'],
+      move:['Squat down to parallel or below.','Hold the bottom position and pulse — small 5–10cm up and down movements. 12 pulses equals 1 set.','The pulse keeps constant tension on the quad throughout the entire set.'],
+      feel:['Burning quad tension throughout. The slow tempo is what makes this effective — resist the urge to speed up.'],
+      avoid:['Rising too high on the pulse — stay low to keep the muscle under constant tension.','Letting the chest drop forward — the dumbbell counterbalance helps keep you upright.'] },
+    { name:'Calf Raises (dumbbell loaded)', muscles:'Gastrocnemius (upper calf)',
+      setup:['Stand on the edge of a step, letting the heel drop below step level for full range of motion.','Hold a dumbbell in one or both hands for additional load.'],
+      move:['Rise up onto your toes as high as possible.','Hold for 1 second at the top — full contraction.','Lower slowly until your heel drops below the platform level.'],
+      feel:['Full stretch at the bottom, full squeeze at the top. Most people rush this — slow it right down.'],
+      avoid:['Partial reps — if your heel does not drop below the step, you are shortchanging the stretch.','Bending your knees — keep legs straight to target the gastrocnemius properly.'] },
+    { name:'Single Leg Calf Raise', muscles:'Gastrocnemius · Soleus · Ankle Stability',
+      setup:['Same as the regular calf raise but one foot at a time.','Hold a single dumbbell on the same side as the working leg, or use a wall for balance.','Tuck the non-working foot behind the working ankle.'],
+      move:['Same movement — full rise, full controlled lower.','Significantly harder than the bilateral version — you may need to reduce weight.'],
+      feel:['Greater instability and a deeper burn than the two-legged version.'],
+      avoid:['Using the non-working foot to assist — keep it lifted throughout every set.'] }
+  ]},
+  { group:'Lower B — Hinge', tag:'HINGE', tagColor:'#c9a84c', exercises:[
+    { name:'Deadlift (barbell)', muscles:'Hamstrings · Glutes · Erectors · Traps · Core',
+      setup:['Bar over mid-foot, about 2–3cm from your shins. Feet hip-width, toes slightly out.','Hinge at hips and grip the bar just outside your legs.','Shoulders directly over or slightly in front of the bar.','Brace hard — big breath in, create intra-abdominal pressure, hold it for the whole rep.'],
+      move:['Drive the floor away — think leg press, not pull the bar up.','Bar stays in contact with shins and drags up your legs throughout.','Hips and shoulders rise at the same rate — do not let hips shoot up first.','Lock out by squeezing your glutes and standing tall. Do not hyperextend at the top.','Hinge back down in the reverse pattern. Set the bar fully, reset your brace, then pull again.'],
+      feel:['Hamstrings loaded at the bottom. Glutes firing hard at lockout. Back flat and braced throughout.'],
+      avoid:['Rounding the lower back — this is the number one injury risk. If your back rounds, reduce the weight.','Bar drifting away from your body — it should essentially scrape your shins.','Jerking the bar from the floor — take the slack out of the bar slowly, then drive.'] },
+    { name:'Romanian Deadlift (dumbbells)', muscles:'Hamstrings · Glutes · Erectors',
+      setup:['Stand holding dumbbells in front of thighs, palms facing you.','Soft, fixed bend in the knees — this never changes throughout the movement.','Begin the movement with a hip hinge, not a knee bend.'],
+      move:['Push your hips back as the dumbbells slide down your legs.','Lower until you feel a strong hamstring stretch — typically mid-shin level for most people.','Drive your hips forward to return to standing. Squeeze glutes hard at lockout.'],
+      feel:['The hamstring stretch is the key cue — when you feel it pulling behind the knee and up the thigh, you are in the right position.'],
+      avoid:['Bending your knees more as the weight descends — this turns it into a squat.','Rounding the lower back. Keep the chest up and spine neutral throughout.','Letting the dumbbells drift away from your body as you lower.'] },
+    { name:'Dumbbell Sumo Squat', muscles:'Inner Thighs (Adductors) · Glutes · Quads',
+      setup:['Feet wider than shoulder-width, toes turned significantly outward at around 45 degrees.','Hold one heavy dumbbell vertically with both hands between your legs.'],
+      move:['Squat down, tracking your knees over your toes which means they travel wide.','Descend until thighs are parallel — the wide stance allows deeper range of motion.','Drive back up through the heels, squeezing the glutes and inner thighs hard at the top.'],
+      feel:['Inner thigh adductor activation that you will not get from a regular squat. Excellent for rounding out lower body development.'],
+      avoid:['Knees collapsing inward — push them out actively throughout the entire movement.'] },
+    { name:'Hip Thrust (flat bench)', muscles:'Glutes (maximus) · Hamstrings',
+      setup:['Sit on the floor with your upper back against the edge of the flat bench — shoulder blades resting on it.','Feet flat on the floor, hip-width apart, knees at 90 degrees when at the top.','Place a dumbbell or weight across your hip crease for added resistance.'],
+      move:['Drive through your heels and thrust hips up until your body forms a straight line from knees to shoulders.','Squeeze your glutes hard at the top — hold for 2 full seconds.','Lower hips toward but not quite touching the floor, then drive back up immediately.'],
+      feel:['Maximal glute activation at the top. If you feel it in your lower back, adjust foot position — move feet slightly further away.'],
+      avoid:['Neck craning upward — keep your chin tucked and gaze slightly forward and down.','Hips sagging to one side — drive evenly through both heels every rep.'] },
+    { name:'Single Leg Romanian Deadlift', muscles:'Hamstrings · Glutes · Balance and Stabilisers',
+      setup:['Stand on one leg, soft bend in the knee, hold a dumbbell in the opposite hand.','The free leg extends behind you as a natural counterbalance as you hinge forward.'],
+      move:['Hinge forward at the hip, keeping your back flat and the free leg in line with your torso.','Lower the dumbbell toward the floor until you feel the hamstring stretch in the standing leg.','Drive the hip of the standing leg forward to return to standing. No momentum.'],
+      feel:['Hamstring stretch in the standing leg. Glute firing to return upright. Core working hard to prevent rotation.'],
+      avoid:['Rotating at the hips — keep your pelvis square to the floor throughout.','Rushing this movement. It is a balance and strength challenge. Slow and controlled only.'] },
+    { name:'Glute Bridge Hold', muscles:'Glutes · Hamstrings · Core',
+      setup:['Lie on your back, feet flat on the floor, knees bent at 90 degrees.','Feet hip-width apart, heels roughly 20–30cm from your glutes.'],
+      move:['Drive through the heels to lift hips until your body forms a straight line from shoulders to knees.','Squeeze your glutes hard at the top — hold for 3 full seconds each rep.','Lower hips slowly, barely touch the floor, then drive back up immediately.'],
+      feel:['Glute contraction at the top position. If your hamstrings cramp, walk your feet slightly further from your glutes.'],
+      avoid:['Bridging through your lower back — the movement comes from glute drive, not lumbar extension.','Feet turning outward — keep them pointing straight forward for consistent glute engagement.'] }
+  ]}
+];
+
+var formRendered = false;
+function renderForm() {
+  if (formRendered) return;
+  formRendered = true;
+  var c = document.getElementById('formContent');
+  var html = '';
+  FORM_DATA.forEach(function(group) {
+    html += '<div class="form-group-title"><span class="form-group-tag" style="background:' + group.tagColor + '">' + group.tag + '</span>' + group.group + '</div>';
+    group.exercises.forEach(function(ex, ei) {
+      var gid = group.tag + ei;
+      html += '<div class="acc-item" id="acc-' + gid + '">';
+      html += '<div class="acc-header" onclick="toggleAcc(\'' + gid + '\')">';
+      html += '<div><div class="acc-name">' + ex.name + '</div><div class="acc-muscles">' + ex.muscles + '</div></div>';
+      html += '<div class="acc-chevron">&#9660;</div></div>';
+      html += '<div class="acc-body" id="body-' + gid + '"><div class="acc-inner">';
+      html += fmtSection('Setup', 'lbl-setup', ex.setup);
+      html += fmtSection('The Movement', 'lbl-move', ex.move);
+      html += fmtSection('What to Feel', 'lbl-feel', ex.feel);
+      html += fmtSection('Common Mistakes', 'lbl-avoid', ex.avoid);
+      html += '</div></div></div>';
+    });
+  });
+  c.innerHTML = html;
+}
+
+function fmtSection(label, cls, items) {
+  var s = '<div class="form-sec"><div class="form-sec-label ' + cls + '">' + label + '</div>';
+  items.forEach(function(item) { s += '<div class="form-cue">' + item + '</div>'; });
+  return s + '</div>';
+}
+
+function toggleAcc(gid) {
+  var item = document.getElementById('acc-' + gid);
+  var body = document.getElementById('body-' + gid);
+  var isOpen = item.classList.contains('open');
+  document.querySelectorAll('.acc-item.open').forEach(function(el) {
+    el.classList.remove('open');
+    el.querySelector('.acc-body').style.maxHeight = '0';
+  });
+  if (!isOpen) {
+    item.classList.add('open');
+    body.style.maxHeight = body.scrollHeight + 'px';
+  }
+}
+
+// ── SERVICE WORKER ────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+initCards();
+renderTracker();
+document.getElementById('weekBadge').textContent = 'WEEK ' + ST.week;
+</script>
+</body>
+</html>

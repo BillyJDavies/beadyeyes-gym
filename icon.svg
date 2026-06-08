@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#2C2C2C"/>
+
+  <!-- Gold border ring -->
+  <rect x="18" y="18" width="476" height="476" rx="66" fill="none" stroke="#B8860B" stroke-width="8"/>
+
+  <!-- Dumbbell bar -->
+  <rect x="116" y="236" width="280" height="40" rx="8" fill="#B8860B"/>
+
+  <!-- Left weight plate outer -->
+  <rect x="72" y="192" width="60" height="128" rx="10" fill="#B8860B"/>
+  <!-- Left weight plate inner (dark recess) -->
+  <rect x="84" y="208" width="36" height="96" rx="6" fill="#2C2C2C"/>
+
+  <!-- Right weight plate outer -->
+  <rect x="380" y="192" width="60" height="128" rx="10" fill="#B8860B"/>
+  <!-- Right weight plate inner (dark recess) -->
+  <rect x="392" y="208" width="36" height="96" rx="6" fill="#2C2C2C"/>
+
+  <!-- Left collar -->
+  <rect x="132" y="220" width="24" height="72" rx="5" fill="#8C6D0F"/>
+  <!-- Right collar -->
+  <rect x="356" y="220" width="24" height="72" rx="5" fill="#8C6D0F"/>
+
+  <!-- App name -->
+  <text x="256" y="406" font-family="Arial, sans-serif" font-weight="900" font-size="44" fill="#B8860B" text-anchor="middle" letter-spacing="2">BEADYEYES</text>
+  <text x="256" y="444" font-family="Arial, sans-serif" font-weight="400" font-size="22" fill="#9A8060" text-anchor="middle" letter-spacing="3">GYM TRACKER</text>
+</svg>
