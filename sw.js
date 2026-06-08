@@ -1,10 +1,11 @@
-const CACHE = 'beadyeyes-v1';
+const CACHE = 'beadyeyes-v2';
+const BASE = '/beadyeyes-gym';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icon-192.png',
+  BASE + '/icon-512.png'
 ];
 
 self.addEventListener('install', function(e) {
@@ -32,7 +33,7 @@ self.addEventListener('fetch', function(e) {
   e.respondWith(
     caches.match(e.request).then(function(cached) {
       return cached || fetch(e.request).catch(function() {
-        return caches.match('/index.html');
+        return caches.match(BASE + '/index.html');
       });
     })
   );
